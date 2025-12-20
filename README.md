@@ -133,9 +133,9 @@ Push and create a PR
 
 🧾 License
 
-This project is licensed under the MPL-2.0 license (see LICENSE).
+This project is licensed under the MPL-2.0 license.
 
 ✉️ Contact
 
-Sampada Waghode — (use your preferred email)
+Sampada Waghode — sampada.waghode@gmail.com
 GitHub: https://github.com/Sampada-23-00
