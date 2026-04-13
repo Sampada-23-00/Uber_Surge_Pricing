@@ -1,0 +1,4 @@
+Model,Type,RMSE,MAE,R2,CV_RMSE,CV_Std
+Ridge (baseline),Linear Regression with L2 regularisation,0.2852,0.2188,0.8643,0.2565,0.0157
+Random Forest,Ensemble of 200 unpruned decision trees (bagging),0.266,0.1871,0.882,0.2407,0.0189
+Gradient Boosting,300 shallow trees trained sequentially (boosting),0.2655,0.1873,0.8824,0.2428,0.0189

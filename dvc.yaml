@@ -1,0 +1,42 @@
+# dvc.yaml — DVC Pipeline Definition
+# ─────────────────────────────────────────────────────────────────────────────
+# Run with:   dvc repro
+# Track data: dvc add data/raw/uber_rides_india.csv
+# Push:       dvc push
+# ─────────────────────────────────────────────────────────────────────────────
+
+stages:
+
+  generate:
+    cmd: python -m src.data.generator --n_rides 1500 --output data/raw/uber_rides_india.csv
+    outs:
+      - data/raw/uber_rides_india.csv
+
+  train:
+    cmd: python -m src.models.train --data data/raw/uber_rides_india.csv --model-dir models/
+    deps:
+      - data/raw/uber_rides_india.csv
+      - src/features/feature_engineering.py
+      - src/models/train.py
+    outs:
+      - models/model.pkl
+      - models/encoder.pkl
+      - models/metadata.json
+      - models/feature_importance.csv
+
+  score:
+    cmd: >
+      python -m src.models.predict
+      --input data/raw/uber_rides_india.csv
+      --model-dir models/
+      --output data/processed/predictions.csv
+    deps:
+      - data/raw/uber_rides_india.csv
+      - models/model.pkl
+      - models/encoder.pkl
+    outs:
+      - data/processed/predictions.csv
+
+metrics:
+  - models/metadata.json:
+      cache: false

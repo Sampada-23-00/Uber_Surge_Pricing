@@ -1,0 +1,19 @@
+# Core ML
+scikit-learn>=1.4.0
+numpy>=1.26.0
+pandas>=2.2.0
+
+# API
+fastapi>=0.111.0
+uvicorn[standard]>=0.30.0
+python-multipart>=0.0.9   # for file uploads
+
+# Serialisation
+joblib>=1.4.0
+
+# Experiment tracking (optional but recommended)
+# dvc>=3.0.0
+
+# Dev / testing
+pytest>=8.0.0
+httpx>=0.27.0             # for FastAPI TestClient
