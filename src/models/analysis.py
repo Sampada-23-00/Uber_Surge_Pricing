@@ -12,6 +12,8 @@ from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
 from sklearn.linear_model import Ridge
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import cross_val_score, train_test_split
+from xgboost import XGBRegressor
+from lightgbm import LGBMRegressor
 
 from src.features.feature_engineering import build_features
 
@@ -76,6 +78,24 @@ MODEL_JUSTIFICATION = {
             "GB would likely pull ahead on 10k+ rows where its iterative correction shines more. "
             "CV-RMSE is 0.2428 vs RF's 0.2407 — within noise range."
         ),
+        "expected_rank": 4,
+    },
+    "XGBoost": {
+        "type": "Extreme Gradient Boosting",
+        "why_included": (
+            "Industry standard for tabular data. Faster and more robust than scikit-learn's GB."
+        ),
+        "core_assumption": "Regularization helps prevent overfitting during boosting sequences.",
+        "why_it_wins": "Excels on complex feature interactions and larger datasets.",
+        "expected_rank": 1,
+    },
+    "LightGBM": {
+        "type": "Light Gradient Boosting Machine",
+        "why_included": (
+            "Microsoft's gradient boosting library. Extremely fast, memory efficient, and accurate."
+        ),
+        "core_assumption": "Leaf-wise tree growth produces lower loss than level-wise.",
+        "why_it_wins": "Can beat XGBoost on speed and sometimes accuracy.",
         "expected_rank": 2,
     },
 }
@@ -108,6 +128,14 @@ def section_1_model_justification(X_train, X_test, y_train, y_test, report: dict
         "Gradient Boosting": GradientBoostingRegressor(
             n_estimators=300, learning_rate=0.05, max_depth=5,
             min_samples_leaf=10, subsample=0.8, random_state=42
+        ),
+        "XGBoost": XGBRegressor(
+            n_estimators=300, learning_rate=0.05, max_depth=5,
+            subsample=0.8, colsample_bytree=0.8, random_state=42, n_jobs=-1
+        ),
+        "LightGBM": LGBMRegressor(
+            n_estimators=300, learning_rate=0.05, max_depth=5,
+            subsample=0.8, colsample_bytree=0.8, random_state=42, n_jobs=-1, verbose=-1
         ),
     }
 

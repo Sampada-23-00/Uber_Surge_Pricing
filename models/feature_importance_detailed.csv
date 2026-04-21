@@ -1,27 +1,28 @@
 rank,feature,importance,cumulative_pct,business_meaning
-1,wait_time_mins,0.5956,59.6,Direct proxy for demand-supply gap. Longer wait = fewer available drivers = higher surge.
-2,special_event_enc,0.1467,74.2,Festivals (Diwali/Holi/Eid) spike demand 1.8x. Unique to Indian market.
-3,is_late_night,0.0802,82.2,10PM–2AM: driver supply drops sharply. Surge nearly guaranteed.
-4,hour,0.0287,85.1,"Raw hour captures intra-day demand curve (office peaks at 8AM, 7PM)."
-5,hour_cos,0.0245,87.6,"Cyclical: ensures model knows 11PM and 1AM are 2 hours apart, not 22."
-6,is_festival,0.0225,89.8,Binary festival flag. Strong categorical demand signal.
-7,festival_score,0.0222,92.0,Festival intensity (Diwali=3 > Eid=2 > Regular=0). Granular demand signal.
-8,is_evening_peak,0.013,93.3,6PM–9PM office return + dinner = highest daily demand window.
-9,weather_severity,0.0118,94.5,1–5 severity scale. Heavy Rain=5 reduces supply while increasing demand.
-10,rain_x_peak,0.008,95.3,Interaction feature: rain DURING peak hours compounds surge multiplicatively.
-11,weather_enc,0.0075,96.1,Encoded weather category — captures ordinal weather patterns.
-12,base_fare,0.007,96.8,City-level fare tier. Higher-fare cities have different driver density.
-13,distance_km,0.007,97.5,Longer rides: drivers more willing → slightly lower surge at high distance.
-14,hour_sin,0.0054,98.0,Cyclical hour encoding (sin component).
-15,is_morning_peak,0.004,98.4,8AM–10AM office commute. Second busiest window of the day.
-16,city_enc,0.0033,98.7,Mumbai and Delhi have structurally higher base demand than Ahmedabad.
-17,is_rainy,0.0029,99.0,People abandon autos/bikes → Uber demand spikes instantly.
-18,ride_completed,0.0021,99.2,Whether ride was accepted — strong proxy for price tolerance at current surge.
-19,dow_sin,0.0018,99.4,Cyclical day-of-week (sin): Monday and Sunday are 1 day apart.
-20,is_heavy_rain,0.0013,99.6,Heavy rain specifically — strongest single weather signal.
-21,dow_cos,0.0012,99.7,Cyclical day-of-week (cos component).
-22,day_of_week,0.0012,99.8,Raw day — Monday commute differs from Friday evening patterns.
-23,customer_segment_enc,0.0012,99.9,Encoded segment: affects cancellation probability and acceptance rate.
-24,price_sensitivity,0.0005,100.0,Budget customers cancel at 1.5x. Premium tolerate 3x. Changes cancellation rate.
-25,is_weekend,0.0002,100.0,Weekends shift demand from office to leisure — different surge profile.
-26,is_weekend_evening,0.0001,100.0,Sat/Sun 7PM–10PM: combines leisure surge + late-night supply drop.
+1,wait_time_mins,0.5837,58.4,Direct proxy for demand-supply gap. Longer wait = fewer available drivers = higher surge.
+2,hour_sin,0.0882,67.2,Cyclical hour encoding (sin component).
+3,special_event_enc,0.0712,74.3,Festivals (Diwali/Holi/Eid) spike demand 1.8x. Unique to Indian market.
+4,is_festival,0.0659,80.9,Binary festival flag. Strong categorical demand signal.
+5,driver_supply,0.0596,86.9,—
+6,festival_score,0.0454,91.4,Festival intensity (Diwali=3 > Eid=2 > Regular=0). Granular demand signal.
+7,hour,0.0337,94.8,"Raw hour captures intra-day demand curve (office peaks at 8AM, 7PM)."
+8,distance_km,0.0189,96.7,Longer rides: drivers more willing → slightly lower surge at high distance.
+9,hour_cos,0.0136,98.0,"Cyclical: ensures model knows 11PM and 1AM are 2 hours apart, not 22."
+10,base_fare,0.0054,98.6,City-level fare tier. Higher-fare cities have different driver density.
+11,weather_enc,0.0033,98.9,Encoded weather category — captures ordinal weather patterns.
+12,city_enc,0.0019,99.1,Mumbai and Delhi have structurally higher base demand than Ahmedabad.
+13,day_of_week,0.0013,99.2,Raw day — Monday commute differs from Friday evening patterns.
+14,dow_cos,0.0012,99.3,Cyclical day-of-week (cos component).
+15,weather_severity,0.0012,99.5,1–5 severity scale. Heavy Rain=5 reduces supply while increasing demand.
+16,ride_completed,0.0011,99.6,Whether ride was accepted — strong proxy for price tolerance at current surge.
+17,dow_sin,0.0011,99.7,Cyclical day-of-week (sin): Monday and Sunday are 1 day apart.
+18,is_morning_peak,0.0009,99.8,8AM–10AM office commute. Second busiest window of the day.
+19,customer_segment_enc,0.0005,99.8,Encoded segment: affects cancellation probability and acceptance rate.
+20,price_sensitivity,0.0004,99.9,Budget customers cancel at 1.5x. Premium tolerate 3x. Changes cancellation rate.
+21,rain_x_peak,0.0003,99.9,Interaction feature: rain DURING peak hours compounds surge multiplicatively.
+22,is_heavy_rain,0.0002,99.9,Heavy rain specifically — strongest single weather signal.
+23,is_late_night,0.0002,100.0,10PM–2AM: driver supply drops sharply. Surge nearly guaranteed.
+24,is_evening_peak,0.0002,100.0,6PM–9PM office return + dinner = highest daily demand window.
+25,is_rainy,0.0001,100.0,People abandon autos/bikes → Uber demand spikes instantly.
+26,is_weekend,0.0001,100.0,Weekends shift demand from office to leisure — different surge profile.
+27,is_weekend_evening,0.0,100.0,Sat/Sun 7PM–10PM: combines leisure surge + late-night supply drop.

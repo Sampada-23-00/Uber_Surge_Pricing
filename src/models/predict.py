@@ -1,17 +1,17 @@
-
 import argparse
 import json
 import logging
 import pickle
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
+import shap
 
 from src.features.feature_engineering import build_features
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
-
 
 # ─────────────────────────────────────────────
 # Loader (singleton-style caching)
@@ -22,8 +22,8 @@ _cache: dict = {}
 
 def load_artifacts(model_dir: str = "models/") -> tuple:
     """
-    Load and cache model, encoder, and metadata from disk.
-    Returns (model, encoder, metadata).
+    Load and cache model, encoder, metadata, and SHAP explainer from disk.
+    Returns (model, encoder, metadata, explainer).
     """
     global _cache
     model_dir = Path(model_dir)
@@ -35,13 +35,21 @@ def load_artifacts(model_dir: str = "models/") -> tuple:
             _cache["encoder"] = pickle.load(f)
         with open(model_dir / "metadata.json") as f:
             _cache["metadata"] = json.load(f)
+            
+        # Initialize SHAP explainer for tree models
+        try:
+            _cache["explainer"] = shap.TreeExplainer(_cache["model"])
+        except Exception as e:
+            logger.warning(f"Could not load SHAP explainer: {e}")
+            _cache["explainer"] = None
+            
         logger.info(
             "Loaded model: %s | Features: %d",
             _cache["metadata"]["best_model"],
             len(_cache["metadata"]["feature_cols"]),
         )
 
-    return _cache["model"], _cache["encoder"], _cache["metadata"]
+    return _cache["model"], _cache["encoder"], _cache["metadata"], _cache.get("explainer")
 
 
 # ─────────────────────────────────────────────
@@ -50,30 +58,15 @@ def load_artifacts(model_dir: str = "models/") -> tuple:
 
 def predict_single(input_dict: dict, model_dir: str = "models/") -> dict:
     """
-    Predict surge multiplier for a single ride request.
-
-    Parameters
-    ----------
-    input_dict : dict
-        Keys must match raw feature schema (see feature_engineering.ALLOWED_RAW).
-    model_dir : str
-        Path to saved artifacts directory.
-
-    Returns
-    -------
-    dict with:
-        surge_multiplier : float   (clamped 1.0 – 3.5)
-        surge_category   : str     (Normal / Moderate / High / Very High)
-        model_name       : str
+    Predict surge multiplier for a single ride request, including SHAP explanations
+    and confidence intervals.
     """
-    model, encoder, metadata = load_artifacts(model_dir)
+    model, encoder, metadata, explainer = load_artifacts(model_dir)
 
     df = pd.DataFrame([input_dict])
-    # Add a dummy surge_multiplier so build_features doesn't raise (it's immediately dropped)
     df["surge_multiplier"] = 0.0
     X, _, _ = build_features(df, encoder=encoder, fit_encoder=False)
 
-    # Align columns to training schema
     expected = metadata["feature_cols"]
     for col in expected:
         if col not in X.columns:
@@ -91,10 +84,44 @@ def predict_single(input_dict: dict, model_dir: str = "models/") -> dict:
         category = "High"
     else:
         category = "Very High"
+        
+    # --- Confidence Intervals (If Random Forest) ---
+    ci_lower, ci_upper = surge, surge
+    if hasattr(model, "estimators_"):
+        try:
+            # Random Forest returns variance across trees
+            preds = [est.predict(X.values)[0] for est in model.estimators_]
+            ci_lower = round(max(1.0, np.percentile(preds, 10)), 2)
+            ci_upper = round(min(3.5, np.percentile(preds, 90)), 2)
+        except Exception:
+            pass
+
+    # --- SHAP Explanations ---
+    shap_explanation = {}
+    if explainer is not None:
+        try:
+            shap_values = explainer.shap_values(X)
+            # Depending on SHAP version/model, it might be a list or array
+            if isinstance(shap_values, list):
+                sv = shap_values[0][0]
+            else:
+                sv = shap_values[0]
+                
+            # Create feature to SHAP value map
+            feature_impacts = {feat: float(val) for feat, val in zip(expected, sv)}
+            
+            # Get top 3 positive and top 1 negative driver
+            sorted_impacts = sorted(feature_impacts.items(), key=lambda x: x[1], reverse=True)
+            shap_explanation["pushing_surge_up"] = [f"{k} (+{v:.2f}x)" for k, v in sorted_impacts[:3] if v > 0.02]
+            shap_explanation["pushing_surge_down"] = [f"{k} ({v:.2f}x)" for k, v in reversed(sorted_impacts) if v < -0.02][:2]
+        except Exception as e:
+            logger.warning(f"SHAP explanation failed: {e}")
 
     return {
         "surge_multiplier": surge,
         "surge_category":   category,
+        "confidence_interval": [ci_lower, ci_upper],
+        "shap_explanation": shap_explanation,
         "model_name":       metadata["best_model"],
     }
 
@@ -105,7 +132,7 @@ def predict_single(input_dict: dict, model_dir: str = "models/") -> dict:
 
 def predict_batch(df: pd.DataFrame, model_dir: str = "models/") -> pd.DataFrame:
     """Score an entire DataFrame and return it with a prediction column appended."""
-    model, encoder, metadata = load_artifacts(model_dir)
+    model, encoder, metadata, _ = load_artifacts(model_dir)
 
     if "surge_multiplier" not in df.columns:
         df = df.copy()

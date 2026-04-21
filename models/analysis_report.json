@@ -3,32 +3,50 @@
     {
       "Model": "Ridge (baseline)",
       "Type": "Linear Regression with L2 regularisation",
-      "RMSE": 0.2852,
-      "MAE": 0.2188,
-      "R2": 0.8643,
-      "CV_RMSE": 0.2565,
-      "CV_Std": 0.0157
+      "RMSE": 0.1452,
+      "MAE": 0.1197,
+      "R2": 0.8903,
+      "CV_RMSE": 0.1418,
+      "CV_Std": 0.0062
     },
     {
       "Model": "Random Forest",
       "Type": "Ensemble of 200 unpruned decision trees (bagging)",
-      "RMSE": 0.266,
-      "MAE": 0.1871,
-      "R2": 0.882,
-      "CV_RMSE": 0.2407,
-      "CV_Std": 0.0189
+      "RMSE": 0.1379,
+      "MAE": 0.0895,
+      "R2": 0.901,
+      "CV_RMSE": 0.1408,
+      "CV_Std": 0.033
     },
     {
       "Model": "Gradient Boosting",
       "Type": "300 shallow trees trained sequentially (boosting)",
-      "RMSE": 0.2655,
-      "MAE": 0.1873,
-      "R2": 0.8824,
-      "CV_RMSE": 0.2428,
-      "CV_Std": 0.0189
+      "RMSE": 0.0933,
+      "MAE": 0.0696,
+      "R2": 0.9547,
+      "CV_RMSE": 0.0962,
+      "CV_Std": 0.0106
+    },
+    {
+      "Model": "XGBoost",
+      "Type": "Extreme Gradient Boosting",
+      "RMSE": 0.0988,
+      "MAE": 0.0732,
+      "R2": 0.9492,
+      "CV_RMSE": 0.1,
+      "CV_Std": 0.0118
+    },
+    {
+      "Model": "LightGBM",
+      "Type": "Light Gradient Boosting Machine",
+      "RMSE": 0.0973,
+      "MAE": 0.0702,
+      "R2": 0.9507,
+      "CV_RMSE": 0.1054,
+      "CV_Std": 0.0132
     }
   ],
-  "selected_model": "Random Forest",
+  "selected_model": "Gradient Boosting",
   "selection_reason": "Surge pricing depends on NON-LINEAR interactions between time, weather, and events. A tree-based model captures that '7 PM + Heavy Rain + Diwali = 3x surge' in a way that linear regression structurally cannot. I selected the final model by 5-fold cross-validation RMSE \u2014 not test set RMSE \u2014 to avoid overfitting to a single split.",
   "model_justifications": {
     "Ridge (baseline)": {
@@ -50,6 +68,20 @@
       "why_included": "Gradient Boosting iteratively corrects the residuals of previous trees. This makes it extremely powerful for tabular data with complex feature interactions like time \u00d7 weather \u00d7 festival \u2014 exactly our problem.",
       "core_assumption": "Each new tree specifically targets cases where the previous model was wrong. With 300 iterations and a small learning rate (0.05), it converges carefully.",
       "why_close_to_rf": "On ~1500 rows, both GB and RF are similarly powerful. GB would likely pull ahead on 10k+ rows where its iterative correction shines more. CV-RMSE is 0.2428 vs RF's 0.2407 \u2014 within noise range.",
+      "expected_rank": 4
+    },
+    "XGBoost": {
+      "type": "Extreme Gradient Boosting",
+      "why_included": "Industry standard for tabular data. Faster and more robust than scikit-learn's GB.",
+      "core_assumption": "Regularization helps prevent overfitting during boosting sequences.",
+      "why_it_wins": "Excels on complex feature interactions and larger datasets.",
+      "expected_rank": 1
+    },
+    "LightGBM": {
+      "type": "Light Gradient Boosting Machine",
+      "why_included": "Microsoft's gradient boosting library. Extremely fast, memory efficient, and accurate.",
+      "core_assumption": "Leaf-wise tree growth produces lower loss than level-wise.",
+      "why_it_wins": "Can beat XGBoost on speed and sometimes accuracy.",
       "expected_rank": 2
     }
   },
@@ -57,321 +89,328 @@
     {
       "rank": 1,
       "feature": "wait_time_mins",
-      "importance": 0.5956,
-      "cumulative_pct": 59.6,
+      "importance": 0.5837,
+      "cumulative_pct": 58.4,
       "business_meaning": "Direct proxy for demand-supply gap. Longer wait = fewer available drivers = higher surge."
     },
     {
       "rank": 2,
-      "feature": "special_event_enc",
-      "importance": 0.1467,
-      "cumulative_pct": 74.2,
-      "business_meaning": "Festivals (Diwali/Holi/Eid) spike demand 1.8x. Unique to Indian market."
+      "feature": "hour_sin",
+      "importance": 0.0882,
+      "cumulative_pct": 67.2,
+      "business_meaning": "Cyclical hour encoding (sin component)."
     },
     {
       "rank": 3,
-      "feature": "is_late_night",
-      "importance": 0.0802,
-      "cumulative_pct": 82.2,
-      "business_meaning": "10PM\u20132AM: driver supply drops sharply. Surge nearly guaranteed."
+      "feature": "special_event_enc",
+      "importance": 0.0712,
+      "cumulative_pct": 74.3,
+      "business_meaning": "Festivals (Diwali/Holi/Eid) spike demand 1.8x. Unique to Indian market."
     },
     {
       "rank": 4,
-      "feature": "hour",
-      "importance": 0.0287,
-      "cumulative_pct": 85.1,
-      "business_meaning": "Raw hour captures intra-day demand curve (office peaks at 8AM, 7PM)."
-    },
-    {
-      "rank": 5,
-      "feature": "hour_cos",
-      "importance": 0.0245,
-      "cumulative_pct": 87.6,
-      "business_meaning": "Cyclical: ensures model knows 11PM and 1AM are 2 hours apart, not 22."
-    },
-    {
-      "rank": 6,
       "feature": "is_festival",
-      "importance": 0.0225,
-      "cumulative_pct": 89.8,
+      "importance": 0.0659,
+      "cumulative_pct": 80.9,
       "business_meaning": "Binary festival flag. Strong categorical demand signal."
     },
     {
-      "rank": 7,
+      "rank": 5,
+      "feature": "driver_supply",
+      "importance": 0.0596,
+      "cumulative_pct": 86.9,
+      "business_meaning": "\u2014"
+    },
+    {
+      "rank": 6,
       "feature": "festival_score",
-      "importance": 0.0222,
-      "cumulative_pct": 92.0,
+      "importance": 0.0454,
+      "cumulative_pct": 91.4,
       "business_meaning": "Festival intensity (Diwali=3 > Eid=2 > Regular=0). Granular demand signal."
     },
     {
+      "rank": 7,
+      "feature": "hour",
+      "importance": 0.0337,
+      "cumulative_pct": 94.8,
+      "business_meaning": "Raw hour captures intra-day demand curve (office peaks at 8AM, 7PM)."
+    },
+    {
       "rank": 8,
-      "feature": "is_evening_peak",
-      "importance": 0.013,
-      "cumulative_pct": 93.3,
-      "business_meaning": "6PM\u20139PM office return + dinner = highest daily demand window."
+      "feature": "distance_km",
+      "importance": 0.0189,
+      "cumulative_pct": 96.7,
+      "business_meaning": "Longer rides: drivers more willing \u2192 slightly lower surge at high distance."
     },
     {
       "rank": 9,
-      "feature": "weather_severity",
-      "importance": 0.0118,
-      "cumulative_pct": 94.5,
-      "business_meaning": "1\u20135 severity scale. Heavy Rain=5 reduces supply while increasing demand."
+      "feature": "hour_cos",
+      "importance": 0.0136,
+      "cumulative_pct": 98.0,
+      "business_meaning": "Cyclical: ensures model knows 11PM and 1AM are 2 hours apart, not 22."
     },
     {
       "rank": 10,
-      "feature": "rain_x_peak",
-      "importance": 0.008,
-      "cumulative_pct": 95.3,
-      "business_meaning": "Interaction feature: rain DURING peak hours compounds surge multiplicatively."
+      "feature": "base_fare",
+      "importance": 0.0054,
+      "cumulative_pct": 98.6,
+      "business_meaning": "City-level fare tier. Higher-fare cities have different driver density."
     },
     {
       "rank": 11,
       "feature": "weather_enc",
-      "importance": 0.0075,
-      "cumulative_pct": 96.1,
+      "importance": 0.0033,
+      "cumulative_pct": 98.9,
       "business_meaning": "Encoded weather category \u2014 captures ordinal weather patterns."
     },
     {
       "rank": 12,
-      "feature": "base_fare",
-      "importance": 0.007,
-      "cumulative_pct": 96.8,
-      "business_meaning": "City-level fare tier. Higher-fare cities have different driver density."
-    },
-    {
-      "rank": 13,
-      "feature": "distance_km",
-      "importance": 0.007,
-      "cumulative_pct": 97.5,
-      "business_meaning": "Longer rides: drivers more willing \u2192 slightly lower surge at high distance."
-    },
-    {
-      "rank": 14,
-      "feature": "hour_sin",
-      "importance": 0.0054,
-      "cumulative_pct": 98.0,
-      "business_meaning": "Cyclical hour encoding (sin component)."
-    },
-    {
-      "rank": 15,
-      "feature": "is_morning_peak",
-      "importance": 0.004,
-      "cumulative_pct": 98.4,
-      "business_meaning": "8AM\u201310AM office commute. Second busiest window of the day."
-    },
-    {
-      "rank": 16,
       "feature": "city_enc",
-      "importance": 0.0033,
-      "cumulative_pct": 98.7,
+      "importance": 0.0019,
+      "cumulative_pct": 99.1,
       "business_meaning": "Mumbai and Delhi have structurally higher base demand than Ahmedabad."
     },
     {
-      "rank": 17,
-      "feature": "is_rainy",
-      "importance": 0.0029,
-      "cumulative_pct": 99.0,
-      "business_meaning": "People abandon autos/bikes \u2192 Uber demand spikes instantly."
-    },
-    {
-      "rank": 18,
-      "feature": "ride_completed",
-      "importance": 0.0021,
-      "cumulative_pct": 99.2,
-      "business_meaning": "Whether ride was accepted \u2014 strong proxy for price tolerance at current surge."
-    },
-    {
-      "rank": 19,
-      "feature": "dow_sin",
-      "importance": 0.0018,
-      "cumulative_pct": 99.4,
-      "business_meaning": "Cyclical day-of-week (sin): Monday and Sunday are 1 day apart."
-    },
-    {
-      "rank": 20,
-      "feature": "is_heavy_rain",
-      "importance": 0.0013,
-      "cumulative_pct": 99.6,
-      "business_meaning": "Heavy rain specifically \u2014 strongest single weather signal."
-    },
-    {
-      "rank": 21,
-      "feature": "dow_cos",
-      "importance": 0.0012,
-      "cumulative_pct": 99.7,
-      "business_meaning": "Cyclical day-of-week (cos component)."
-    },
-    {
-      "rank": 22,
+      "rank": 13,
       "feature": "day_of_week",
-      "importance": 0.0012,
-      "cumulative_pct": 99.8,
+      "importance": 0.0013,
+      "cumulative_pct": 99.2,
       "business_meaning": "Raw day \u2014 Monday commute differs from Friday evening patterns."
     },
     {
-      "rank": 23,
-      "feature": "customer_segment_enc",
+      "rank": 14,
+      "feature": "dow_cos",
       "importance": 0.0012,
-      "cumulative_pct": 99.9,
+      "cumulative_pct": 99.3,
+      "business_meaning": "Cyclical day-of-week (cos component)."
+    },
+    {
+      "rank": 15,
+      "feature": "weather_severity",
+      "importance": 0.0012,
+      "cumulative_pct": 99.5,
+      "business_meaning": "1\u20135 severity scale. Heavy Rain=5 reduces supply while increasing demand."
+    },
+    {
+      "rank": 16,
+      "feature": "ride_completed",
+      "importance": 0.0011,
+      "cumulative_pct": 99.6,
+      "business_meaning": "Whether ride was accepted \u2014 strong proxy for price tolerance at current surge."
+    },
+    {
+      "rank": 17,
+      "feature": "dow_sin",
+      "importance": 0.0011,
+      "cumulative_pct": 99.7,
+      "business_meaning": "Cyclical day-of-week (sin): Monday and Sunday are 1 day apart."
+    },
+    {
+      "rank": 18,
+      "feature": "is_morning_peak",
+      "importance": 0.0009,
+      "cumulative_pct": 99.8,
+      "business_meaning": "8AM\u201310AM office commute. Second busiest window of the day."
+    },
+    {
+      "rank": 19,
+      "feature": "customer_segment_enc",
+      "importance": 0.0005,
+      "cumulative_pct": 99.8,
       "business_meaning": "Encoded segment: affects cancellation probability and acceptance rate."
     },
     {
-      "rank": 24,
+      "rank": 20,
       "feature": "price_sensitivity",
-      "importance": 0.0005,
-      "cumulative_pct": 100.0,
+      "importance": 0.0004,
+      "cumulative_pct": 99.9,
       "business_meaning": "Budget customers cancel at 1.5x. Premium tolerate 3x. Changes cancellation rate."
     },
     {
-      "rank": 25,
-      "feature": "is_weekend",
+      "rank": 21,
+      "feature": "rain_x_peak",
+      "importance": 0.0003,
+      "cumulative_pct": 99.9,
+      "business_meaning": "Interaction feature: rain DURING peak hours compounds surge multiplicatively."
+    },
+    {
+      "rank": 22,
+      "feature": "is_heavy_rain",
       "importance": 0.0002,
+      "cumulative_pct": 99.9,
+      "business_meaning": "Heavy rain specifically \u2014 strongest single weather signal."
+    },
+    {
+      "rank": 23,
+      "feature": "is_late_night",
+      "importance": 0.0002,
+      "cumulative_pct": 100.0,
+      "business_meaning": "10PM\u20132AM: driver supply drops sharply. Surge nearly guaranteed."
+    },
+    {
+      "rank": 24,
+      "feature": "is_evening_peak",
+      "importance": 0.0002,
+      "cumulative_pct": 100.0,
+      "business_meaning": "6PM\u20139PM office return + dinner = highest daily demand window."
+    },
+    {
+      "rank": 25,
+      "feature": "is_rainy",
+      "importance": 0.0001,
+      "cumulative_pct": 100.0,
+      "business_meaning": "People abandon autos/bikes \u2192 Uber demand spikes instantly."
+    },
+    {
+      "rank": 26,
+      "feature": "is_weekend",
+      "importance": 0.0001,
       "cumulative_pct": 100.0,
       "business_meaning": "Weekends shift demand from office to leisure \u2014 different surge profile."
     },
     {
-      "rank": 26,
+      "rank": 27,
       "feature": "is_weekend_evening",
-      "importance": 0.0001,
+      "importance": 0.0,
       "cumulative_pct": 100.0,
       "business_meaning": "Sat/Sun 7PM\u201310PM: combines leisure surge + late-night supply drop."
     }
   ],
   "top_3_features": [
     "wait_time_mins",
-    "special_event_enc",
-    "is_late_night"
+    "hour_sin",
+    "special_event_enc"
   ],
-  "features_for_80pct": 3,
+  "features_for_80pct": 4,
   "scenario_testing": [
     {
       "group": "Rain Effect",
       "scenario": "No rain (baseline)",
-      "predicted_surge": 1.04,
+      "predicted_surge": 1.0,
       "category": "Low"
     },
     {
       "group": "Rain Effect",
       "scenario": "Light Rain",
-      "predicted_surge": 1.23,
+      "predicted_surge": 1.25,
       "category": "Low"
     },
     {
       "group": "Rain Effect",
       "scenario": "Heavy Rain",
-      "predicted_surge": 1.63,
+      "predicted_surge": 1.5,
       "category": "Moderate"
     },
     {
       "group": "Rain Effect",
       "scenario": "Heavy Rain + Peak",
-      "predicted_surge": 2.49,
-      "category": "High"
+      "predicted_surge": 1.75,
+      "category": "Moderate"
     },
     {
       "group": "Festival Effect",
       "scenario": "Regular day",
-      "predicted_surge": 1.04,
+      "predicted_surge": 1.0,
       "category": "Low"
     },
     {
       "group": "Festival Effect",
       "scenario": "Eid",
-      "predicted_surge": 1.91,
-      "category": "High"
+      "predicted_surge": 1.58,
+      "category": "Moderate"
     },
     {
       "group": "Festival Effect",
       "scenario": "Holi",
-      "predicted_surge": 2.02,
-      "category": "High"
+      "predicted_surge": 1.6,
+      "category": "Moderate"
     },
     {
       "group": "Festival Effect",
       "scenario": "Diwali evening",
-      "predicted_surge": 2.93,
-      "category": "Very High"
+      "predicted_surge": 1.74,
+      "category": "Moderate"
     },
     {
       "group": "Time of Day",
       "scenario": "2 PM (off-peak)",
-      "predicted_surge": 1.04,
+      "predicted_surge": 1.0,
       "category": "Low"
     },
     {
       "group": "Time of Day",
       "scenario": "9 AM (morning peak)",
-      "predicted_surge": 1.2,
+      "predicted_surge": 1.13,
       "category": "Low"
     },
     {
       "group": "Time of Day",
       "scenario": "7 PM (evening peak)",
-      "predicted_surge": 1.69,
-      "category": "Moderate"
+      "predicted_surge": 1.09,
+      "category": "Low"
     },
     {
       "group": "Time of Day",
       "scenario": "1 AM (late night)",
-      "predicted_surge": 2.54,
-      "category": "Very High"
+      "predicted_surge": 1.59,
+      "category": "Moderate"
     },
     {
       "group": "Customer Segment",
       "scenario": "Premium customer",
-      "predicted_surge": 1.04,
+      "predicted_surge": 1.0,
       "category": "Low"
     },
     {
       "group": "Customer Segment",
       "scenario": "Regular customer",
-      "predicted_surge": 1.04,
+      "predicted_surge": 1.0,
       "category": "Low"
     },
     {
       "group": "Customer Segment",
       "scenario": "Budget customer",
-      "predicted_surge": 1.04,
+      "predicted_surge": 1.0,
       "category": "Low"
     },
     {
       "group": "Customer Segment",
       "scenario": "Budget + High Surge",
-      "predicted_surge": 2.2,
-      "category": "High"
+      "predicted_surge": 1.49,
+      "category": "Moderate"
     },
     {
       "group": "Compound Scenarios",
       "scenario": "Normal Tuesday 2PM",
-      "predicted_surge": 1.04,
+      "predicted_surge": 1.0,
       "category": "Low"
     },
     {
       "group": "Compound Scenarios",
       "scenario": "Evening Peak + Heavy Rain",
-      "predicted_surge": 2.49,
-      "category": "High"
+      "predicted_surge": 1.75,
+      "category": "Moderate"
     },
     {
       "group": "Compound Scenarios",
       "scenario": "Diwali + Late Night",
-      "predicted_surge": 3.31,
+      "predicted_surge": 3.05,
       "category": "Very High"
     },
     {
       "group": "Compound Scenarios",
       "scenario": "Diwali + Rain + Evening Peak",
-      "predicted_surge": 3.38,
+      "predicted_surge": 3.5,
       "category": "Very High"
     }
   ],
   "error_analysis": {
-    "bias": 0.0032,
-    "std": 0.2659,
-    "within_0_2": 66.7,
-    "within_0_5": 89.7,
+    "bias": -0.0071,
+    "std": 0.093,
+    "within_0_2": 95.7,
+    "within_0_5": 100.0,
     "large_errors_pct": 0.0,
-    "worst_weather": "Hot",
+    "worst_weather": "Humid",
     "worst_surge_bucket": "VeryHigh(2.5+)"
   }
 }

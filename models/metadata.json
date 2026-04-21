@@ -1,10 +1,11 @@
 {
-  "best_model": "Random Forest",
+  "best_model": "Gradient Boosting",
   "feature_cols": [
     "hour",
     "day_of_week",
     "distance_km",
     "base_fare",
+    "driver_supply",
     "wait_time_mins",
     "ride_completed",
     "is_morning_peak",
@@ -30,22 +31,34 @@
   ],
   "metrics": {
     "Ridge (baseline)": {
-      "rmse": 0.2852,
-      "mae": 0.2188,
-      "r2": 0.8643,
-      "cv_rmse": 0.2565
+      "rmse": 0.1452,
+      "mae": 0.1197,
+      "r2": 0.8903,
+      "cv_rmse": 0.1418
     },
     "Random Forest": {
-      "rmse": 0.266,
-      "mae": 0.1871,
-      "r2": 0.882,
-      "cv_rmse": 0.2407
+      "rmse": 0.1379,
+      "mae": 0.0895,
+      "r2": 0.901,
+      "cv_rmse": 0.1408
     },
     "Gradient Boosting": {
-      "rmse": 0.2655,
-      "mae": 0.1873,
-      "r2": 0.8824,
-      "cv_rmse": 0.2428
+      "rmse": 0.0933,
+      "mae": 0.0696,
+      "r2": 0.9547,
+      "cv_rmse": 0.0962
+    },
+    "XGBoost": {
+      "rmse": 0.0988,
+      "mae": 0.0732,
+      "r2": 0.9492,
+      "cv_rmse": 0.1
+    },
+    "LightGBM": {
+      "rmse": 0.0973,
+      "mae": 0.0702,
+      "r2": 0.9507,
+      "cv_rmse": 0.1054
     }
   },
   "train_rows": 1200,

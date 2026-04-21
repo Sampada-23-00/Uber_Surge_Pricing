@@ -21,6 +21,8 @@ from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
 from sklearn.linear_model import Ridge
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import cross_val_score, train_test_split
+from xgboost import XGBRegressor
+from lightgbm import LGBMRegressor
 
 from src.features.feature_engineering import build_features
 
@@ -40,6 +42,14 @@ MODELS = {
     "Gradient Boosting": GradientBoostingRegressor(
         n_estimators=300, learning_rate=0.05, max_depth=5,
         min_samples_leaf=10, subsample=0.8, random_state=42
+    ),
+    "XGBoost": XGBRegressor(
+        n_estimators=300, learning_rate=0.05, max_depth=5,
+        subsample=0.8, colsample_bytree=0.8, random_state=42, n_jobs=-1
+    ),
+    "LightGBM": LGBMRegressor(
+        n_estimators=300, learning_rate=0.05, max_depth=5,
+        subsample=0.8, colsample_bytree=0.8, random_state=42, n_jobs=-1, verbose=-1
     ),
 }
 
@@ -150,10 +160,10 @@ def _print_summary(results: dict, best_name: str) -> None:
     print("\n" + "=" * 60)
     print("  MODEL COMPARISON SUMMARY")
     print("=" * 60)
-    print(f"{'Model':<25} {'RMSE':>8} {'MAE':>8} {'R²':>8} {'CV-RMSE':>10}")
+    print(f"{'Model':<25} {'RMSE':>8} {'MAE':>8} {'R2':>8} {'CV-RMSE':>10}")
     print("-" * 60)
     for name, m in results.items():
-        marker = "  ← BEST" if name == best_name else ""
+        marker = "  <-- BEST" if name == best_name else ""
         print(f"{name:<25} {m['rmse']:>8.4f} {m['mae']:>8.4f} {m['r2']:>8.4f} {m['cv_rmse']:>10.4f}{marker}")
     print("=" * 60 + "\n")
 

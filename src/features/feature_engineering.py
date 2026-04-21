@@ -30,6 +30,7 @@ ALLOWED_RAW = [
     "day_of_week",
     "distance_km",
     "base_fare",
+    "driver_supply",
     "city",
     "weather",
     "special_event",
@@ -150,7 +151,7 @@ class CategoricalEncoder:
 
 FEATURE_COLS = [
     # Raw numeric
-    "hour", "day_of_week", "distance_km", "base_fare", "wait_time_mins", "ride_completed",
+    "hour", "day_of_week", "distance_km", "base_fare", "driver_supply", "wait_time_mins", "ride_completed",
     # Time
     "is_morning_peak", "is_evening_peak", "is_late_night", "is_weekend",
     "is_weekend_evening", "hour_sin", "hour_cos", "dow_sin", "dow_cos",
