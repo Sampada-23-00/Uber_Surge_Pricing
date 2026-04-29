@@ -186,17 +186,4 @@ Test coverage includes:
 
 ---
 
-## Interview Talking Points
 
-> "I built a production-ready ML system for dynamic surge pricing in Indian ride-hailing markets.
-> The model predicts surge multiplier — not final fare — to avoid the trivial leakage problem where 
-> final_fare = base_fare × surge. I compared Ridge, Random Forest, and Gradient Boosting using 
-> 5-fold cross-validation, selecting Random Forest (CV-RMSE = 0.24). The system is served via 
-> a FastAPI endpoint, containerized with Docker, and the pipeline is version-controlled with DVC."
-
-**Key answers you can now defend:**
-- Why predict surge, not fare? → Leakage: fare is deterministic from surge
-- How did you prevent leakage? → `final_fare` excluded from features + verified by unit test
-- Why Random Forest over Gradient Boosting? → Cross-validation selected it (CV-RMSE 0.2407 vs 0.2428)
-- What features matter most? → `wait_time_mins`, `special_event`, `is_late_night` (see feature_importance.csv)
-- How is this production-ready? → FastAPI + Docker + DVC + unit tests + modular src/ structure
